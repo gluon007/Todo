@@ -45,22 +45,22 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[50],
+      backgroundColor: Colors.yellow[200],
       appBar: AppBar(
-        title: const Text('Login Page'),
+        title: const Text('ToDo'),
         centerTitle: true,
-        backgroundColor: Colors.blue[800],
+        backgroundColor: Colors.yellow[500],
       ),
       body: Center(
         child: Container(
           width: 350,
           padding: const EdgeInsets.all(20.0),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Colors.yellow[50],
             borderRadius: BorderRadius.circular(10),
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.yellow,
                 blurRadius: 10,
                 spreadRadius: 5,
               ),
@@ -88,12 +88,17 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _login,
-                style: ElevatedButton.styleFrom(
+                style: ElevatedButton.
+                
+                styleFrom(
+                  backgroundColor: Colors.yellow[500],
                   padding:
                       const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                   textStyle: const TextStyle(fontSize: 18),
+                  
                 ),
-                child: const Text('Login'),
+                child: const Text('Login',
+                style: TextStyle(color: Colors.black),),
               ),
               const SizedBox(height: 20),
               TextButton(
