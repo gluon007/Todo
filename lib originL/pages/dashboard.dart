@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:todo/models/user.dart';
 import 'package:todo/pages/login.dart';
 import 'package:todo/service/database.dart';
 import 'package:todo/utils/dialog_box.dart';
@@ -14,19 +15,61 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  List<Map<String, dynamic>> todoList = [];
-  final _controller = TextEditingController();
-  bool isDataLoaded = false;
+  // TEXT CONTROLLER
+  MyUser user = MyUser();
 
   @override
   void initState() {
-    DatabaseMethods().getdata(widget.id).then((data) {
-      if (!mounted) return;
-      todoList = data;
-      isDataLoaded = true;
-      setState(() {});
-    });
+    user.id = widget.id;
     super.initState();
+  }
+
+  final _controller = TextEditingController();
+  List<dynamic> todoList = [];
+
+  void checkBoxChanged(bool? value, int index) {
+    setState(() {
+      todoList[index][1] = !todoList[index][1];
+    });
+  }
+
+  //  save new task
+  void saveNewTask() async {
+    todoList.add({_controller.text, false});
+    setState(() {
+      _controller.clear();
+    });
+    print("list: $todoList");
+    await DatabaseMethods().addNewTask(todoList, user.id!);
+    Navigator.of(context).pop();
+  }
+
+  // // new task
+  void createNewTask() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return DialogBox(
+          controller: _controller,
+          onSave: saveNewTask,
+          onCancel: () => Navigator.of(context).pop,
+        );
+      },
+    );
+  }
+
+  // //  delet task
+  void deleteTask(int index) {
+    setState(() {
+      todoList.removeAt(index);
+    });
+  }
+
+  void _logout() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+    );
   }
 
   @override
@@ -47,7 +90,7 @@ class _DashboardState extends State<Dashboard> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: _logout,
+            onPressed: _logout, // Logout action
           ),
         ],
       ),
@@ -55,8 +98,18 @@ class _DashboardState extends State<Dashboard> {
         onPressed: createNewTask,
         child: const Icon(Icons.add),
       ),
-      body: isDataLoaded
-          ? LayoutBuilder(
+      body: FutureBuilder(
+          future: DatabaseMethods().getdata(widget.id),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (todoList.isEmpty) {
+              return const Center(child: Text('No Task!'));
+            }
+            todoList = snapshot.data!;
+            return LayoutBuilder(
               builder: (context, constraints) => Align(
                 alignment: Alignment.topCenter,
                 child: SizedBox(
@@ -79,8 +132,8 @@ class _DashboardState extends State<Dashboard> {
                         itemCount: todoList.length,
                         itemBuilder: (context, index) {
                           return ToDoTile(
-                            taskName: todoList[index]['task'],
-                            taskCompleted: todoList[index]['isDone'],
+                            taskName: todoList[index][0],
+                            taskCompleted: todoList[index][1],
                             onChanged: (value) => checkBoxChanged(value, index),
                             deleteFunction: (context) => deleteTask(index),
                           );
@@ -90,57 +143,8 @@ class _DashboardState extends State<Dashboard> {
                   ),
                 ),
               ),
-            )
-          : const Center(
-              child: CircularProgressIndicator(),
-            ),
-    );
-  }
-
-  void checkBoxChanged(bool? value, int index) async {
-    todoList[index]['isDone'] = !todoList[index]['isDone'];
-    setState(() {});
-    await DatabaseMethods().updateTask(todoList, widget.id);
-  }
-
-  //  save new task
-  void saveNewTask() async {
-    todoList.add({'task': _controller.text, 'isDone': false});
-    setState(() {
-      _controller.clear();
-    });
-    await DatabaseMethods().updateTask(todoList, widget.id);
-    if (!mounted) return;
-    Navigator.of(context).pop();
-  }
-
-  // // new task
-  void createNewTask() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return DialogBox(
-          controller: _controller,
-          onSave: saveNewTask,
-          onCancel: () => Navigator.of(context).pop(),
-        );
-      },
-    );
-  }
-
-  // //  delet task
-  void deleteTask(int index) async {
-    todoList.removeAt(index);
-    setState(() {});
-    await DatabaseMethods().updateTask(todoList, widget.id);
-  }
-
-  void _logout() async {
-    await DatabaseMethods().signout();
-    if (!mounted) return;
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
+            );
+          }),
     );
   }
 }

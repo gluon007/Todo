@@ -1,35 +1,42 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:todo/service/constants.dart';
 
 class DatabaseMethods {
-  Future<List<Map<String, dynamic>>> getdata(String id) async {
-    try {
-      final data =
-          await FirebaseFirestore.instance.collection('Task').doc(id).get();
-      List<Map<String, dynamic>> taskList = [];
-      if (data.data() == null) {
-        return taskList;
-      }
-      taskList = List<Map<String, dynamic>>.from(data.data()!['data']);
-      return taskList;
-    } catch (e) {
-      debugPrint(e.toString());
-      return [];
-    }
-  }
-
-  Future<void> updateTask(
-      List<Map<String, dynamic>> taskList, String id) async {
+  // create user
+  Future<String> createMyUser(String id) async {
     try {
       await FirebaseFirestore.instance
           .collection('Task')
           .doc(id)
-          .set({'data': taskList});
+          .set({'data': []});
+      return success;
     } catch (e) {
-      debugPrint(e.toString());
+      return e.toString();
     }
+  }
+
+  Future<List<dynamic>> getdata(String id) async {
+    try {
+      print('start');
+      final data =
+          await FirebaseFirestore.instance.collection('Task').doc(id).get();
+
+      print('end');
+      print("data.data() ${data.data()}");
+
+      return data.data()!['data'] as List<dynamic>;
+    } catch (e) {
+      print('error: $e');
+      return [];
+    }
+  }
+
+  Future<void> addNewTask(List<dynamic> taskList, String id) async {
+    return await FirebaseFirestore.instance
+        .collection('Task')
+        .doc(id)
+        .update({"data": taskList});
   }
 
   Future<String> forgot(String email) async {
@@ -45,8 +52,9 @@ class DatabaseMethods {
 
   Future<String> signup(String email, String password) async {
     try {
-      await FirebaseAuth.instance
+      final user = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
+      await createMyUser(user.user!.uid);
       return success;
     } on FirebaseAuthException catch (e) {
       return e.code;
