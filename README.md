@@ -1,2 +1,2 @@
 # Todo
-used flutter framework and firebase platform for deleving this app for managing day to day task
+used flutter framework and firebase platform for developing this app for managing day to day task
