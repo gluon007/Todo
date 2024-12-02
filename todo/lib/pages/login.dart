@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:todo/pages/dashboard.dart';
 import 'package:todo/pages/forgetpassword.dart';
 import 'package:todo/pages/signup.dart';
+import 'package:todo/service/database.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,12 +15,24 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  void _login() {
+  void _login() async {
     if (_emailController.text.isNotEmpty &&
         _passwordController.text.isNotEmpty) {
+      String res = await DatabaseMethods()
+          .auth(_emailController.text, _passwordController.text);
+      if (!mounted) return;
+      if (res.startsWith('error:')) {
+        showDialog(
+            context: context,
+            builder: (context) => AlertDialog(content: Text(res)));
+        return;
+      }
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const Dashboard()),
+        MaterialPageRoute(
+            builder: (context) => Dashboard(
+                  id: res,
+                )),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -88,17 +101,18 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _login,
-                style: ElevatedButton.
-                
-                styleFrom(
+                style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.yellow[500],
                   padding:
                       const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                   textStyle: const TextStyle(fontSize: 18),
-                  
                 ),
-                child: const Text('Login',
-                style: TextStyle(color: Colors.black),),
+                child: const Text(
+                  'Login',
+                  style: TextStyle(
+                    color: Colors.black,
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
               TextButton(

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:todo/service/constants.dart';
+import 'package:todo/service/database.dart';
 
 class PasswordResetPage extends StatelessWidget {
   const PasswordResetPage({super.key});
@@ -16,13 +18,33 @@ class PasswordResetPage extends StatelessWidget {
           const SnackBar(content: Text('Password changed successfully!')),
         );
 
-        // Wait for 1 second before navigating to LoginPage
-        await Future.delayed(const Duration(seconds: 1));
+        String res = await DatabaseMethods().forgot(emailController.text);
 
         // Ensure the widget is still mounted before calling Navigator.pop
-        if (context.mounted) {
-          Navigator.pop(context); // Go back to the previous page (LoginPage)
+        if (!context.mounted) {
+          return;
         }
+        if (res != success) {
+          showDialog(
+              context: context,
+              builder: (context) => AlertDialog(content: Text(res)));
+          return;
+        }
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            content:
+                const Text('Password reset link has been sent to your email'),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('OK'))
+            ],
+          ),
+        );
       } else {
         // If fields are empty, show an error message
         ScaffoldMessenger.of(context).showSnackBar(
@@ -32,22 +54,22 @@ class PasswordResetPage extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: Colors.blue[50],
+      backgroundColor: Colors.yellow[200],
       appBar: AppBar(
         title: const Text('Reset Password'),
         centerTitle: true,
-        backgroundColor: Colors.red[800],
+        backgroundColor: Colors.yellow[500],
       ),
       body: Center(
         child: Container(
           width: 350,
           padding: const EdgeInsets.all(20.0),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Colors.yellow[50],
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.yellow.withOpacity(0.1),
                 blurRadius: 10,
                 spreadRadius: 5,
               ),
@@ -82,11 +104,17 @@ class PasswordResetPage extends StatelessWidget {
               ElevatedButton(
                 onPressed: resetPassword,
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.yellow[500],
                   padding:
                       const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                   textStyle: const TextStyle(fontSize: 16),
                 ),
-                child: const Text('Change Password'),
+                child: const Text(
+                  'Change Password',
+                  style: TextStyle(
+                    color: Colors.black,
+                  ),
+                ),
               ),
             ],
           ),

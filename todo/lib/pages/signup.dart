@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:todo/pages/login.dart';
+import 'package:todo/service/constants.dart';
+import 'package:todo/service/database.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -26,11 +28,20 @@ class _SignupPageState extends State<SignupPage> {
   }
 
   // Handle the signup process
-  void _signup() {
+  void _signup() async {
     if (_validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Signup Successful!')),
       );
+      String res = await DatabaseMethods()
+          .signup(emailController.text, passwordController.text);
+      if (!mounted) return;
+      if (res != success) {
+        showDialog(
+            context: context,
+            builder: (context) => AlertDialog(content: Text(res)));
+        return;
+      }
 
       // Navigate to the LoginPage after successful signup
       Navigator.pushReplacement(
@@ -43,22 +54,22 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[50],
+      backgroundColor: Colors.yellow[200],
       appBar: AppBar(
         title: const Text('Sign Up'),
         centerTitle: true,
-        backgroundColor: Colors.red[800],
+        backgroundColor: Colors.yellow[500],
       ),
       body: Center(
         child: Container(
           width: 350,
           padding: const EdgeInsets.all(20.0),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Colors.yellow[50],
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.yellow.withOpacity(0.1),
                 blurRadius: 10,
                 spreadRadius: 5,
               ),
@@ -144,11 +155,17 @@ class _SignupPageState extends State<SignupPage> {
                 ElevatedButton(
                   onPressed: _signup,
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.yellow[500],
                     padding: const EdgeInsets.symmetric(
                         horizontal: 50, vertical: 15),
                     textStyle: const TextStyle(fontSize: 16),
                   ),
-                  child: const Text('Sign Up'),
+                  child: const Text(
+                    'Sign Up',
+                    style: TextStyle(
+                      color: Colors.black,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 20),
                 TextButton(
